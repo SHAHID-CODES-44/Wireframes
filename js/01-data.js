@@ -179,6 +179,18 @@ let LECTURES = [
   {id:4, courseId:2, batchId:3, topic:"Arrays & Recursion — Basics", date:"2026-09-12", start:"11:00", end:"12:30", platform:"Zoom", link:"https://zoom.us/j/9876543210", facultyId:2, notes:"Bring previous-year problem set", status:"Completed"},
 ];
 
+/* Notifications — frontend wireframe only, mirrors the `notifications` DBML schema shared
+   by the team (iNotificationId, iUid, vType, vMessage, dtCreatedAt, iCreatedBy, cStatus).
+   Field names below are the JS-friendly equivalents; nothing here talks to a real database.
+   cStatus follows the schema's single-char convention: 'U' = Unread, 'R' = Read. */
+let NOTIFICATIONS = [
+  {id:1, recipientType:"staff", recipientId:2, type:"Batch Update", message:"You've been assigned as faculty for GATE CS/IT Live Coaching 2027 — Morning Batch.", createdAt:"Today, 9:12 AM", createdBy:1, status:"U"},
+  {id:2, recipientType:"staff", recipientId:1, type:"Review Queue", message:"2 new documents are pending your approval in the Review Queue.", createdAt:"Today, 8:40 AM", createdBy:0, status:"U"},
+  {id:3, recipientType:"student", recipientId:1, type:"Batch Update", message:"Your batch schedule for GATE CS/IT Live Coaching 2027 has been updated.", createdAt:"Yesterday, 6:15 PM", createdBy:1, status:"R"},
+  {id:4, recipientType:"staff", recipientId:1, type:"System", message:"Weekly backup completed successfully.", createdAt:"2 days ago", createdBy:0, status:"R"},
+  {id:5, recipientType:"student", recipientId:3, type:"Payment", message:"Your next installment for Certificate in Data Structures & Algorithms is due on Week 10.", createdAt:"3 days ago", createdBy:4, status:"R"},
+];
+
 let STAFF = [
   {id:1, name:"Animesh Adhikari", email:"animesh@adhikariacademy.in", role:"Super Admin", status:"Active"},
   {id:2, name:"Dr. R. K. Menon", email:"rk.menon@adhikariacademy.in", role:"Faculty", status:"Active"},
@@ -227,5 +239,6 @@ let NEXT_ID = {
   stat: CMS_CONTENT.stats.length + 100,
   testimonial: CMS_CONTENT.testimonials.length + 100,
   lecture: LECTURES.length + 100,
+  notification: NOTIFICATIONS.length + 100,
 };
 function nextId(kind){ return ++NEXT_ID[kind]; }

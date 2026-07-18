@@ -58,7 +58,10 @@ function buildTopbar(){
     <button class="menu-toggle" onclick="openSidebar()">${ICONS.menu}</button>
     <div class="search-box">${ICONS.search}<input type="text" id="globalSearch" placeholder="Search academy records…" oninput="handleGlobalSearch(this.value)"></div>
     <div class="topbar-right">
-      <button class="icon-btn" title="Notifications" onclick="toast('No new notifications')">${ICONS.bell}<span class="dot"></span></button>
+      <div class="notif-wrap">
+        <button class="icon-btn" title="Notifications" id="notifBellBtn" onclick="toggleNotifPanel(event)">${ICONS.bell}<span class="dot" id="notifDot" style="display:none;"></span></button>
+        <div class="notif-panel" id="notifPanel"></div>
+      </div>
       <button class="icon-btn" title="Quick add" onclick="openQuickAddMenu()">${ICONS.plus}</button>
       <div class="user-chip">
         <div class="avatar" id="topbarAvatar">A</div>
@@ -67,6 +70,7 @@ function buildTopbar(){
       </div>
     </div>
   `;
+  updateNotifBadge();
 }
 
 /* Quick-add: jumps straight to the "add" modal for the most common record types. */
@@ -78,6 +82,7 @@ function openQuickAddMenu(){
       <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="closeModal(); navigate('collections'); setTimeout(()=>openCollectionModal(), 60);">${ICONS.layers} Add Collection</button>
       <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="closeModal(); navigate('courses'); setTimeout(()=>openCourseModal(), 60);">${ICONS.grad} Add Course</button>
       <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="closeModal(); navigate('students'); setTimeout(()=>openStudentModal(), 60);">${ICONS.student} Add Student</button>
+      <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="closeModal(); openComposeNotificationModal();">${ICONS.bell} Send Notification</button>
     </div>
   `);
 }
