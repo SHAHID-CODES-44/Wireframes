@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adhikari Academy — Admin Command Centre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/01-variables.css">
+<link rel="stylesheet" href="css/02-base.css">
+<link rel="stylesheet" href="css/03-login.css">
+<link rel="stylesheet" href="css/04-layout.css">
+<link rel="stylesheet" href="css/05-components.css">
+<link rel="stylesheet" href="css/06-calendar.css">
+</head>
+<body>
+
+<!-- ============================================================ LOGIN ============================================================ -->
+<div id="view-login" class="view active">
+  <div class="login-shell">
+    <div class="login-card">
+      <div class="login-brand">
+        <div>
+          <div class="brand-logo">
+            <span class="mark">AAL</span>
+            <span class="name">Adhikari Academy<br>of Learning</span>
+          </div>
+          <div class="eyebrow">Adhikari Academy</div>
+          <h1>Admin Command Centre</h1>
+          <p>Securely manage publications, courses, subscribers, and academy operations from one place.</p>
+        </div>
+        <div class="login-foot">© 2026 Adhikari Academy of Learning · Internal staff platform</div>
+      </div>
+      <div class="login-form-wrap">
+        <div class="login-word">Adhikari <span>Academy</span></div>
+        <div class="login-tag">Staff Access</div>
+        <h2>Welcome back</h2>
+        <p class="sub">Sign in with your assigned staff account.</p>
+        <div class="login-error" id="loginError">Enter your name and password to continue.</div>
+        <form id="loginForm" onsubmit="return handleLogin(event)">
+          <div class="field">
+            <label for="loginName">Name</label>
+            <input type="text" id="loginName" placeholder="e.g. Animesh Adhikari" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="loginPass">Password</label>
+            <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <div class="field">
+            <label for="loginRole">Role</label>
+            <select id="loginRole">
+              <option value="Super Admin" selected>Super Admin</option>
+              <option value="Management">Management</option>
+              <option value="Reviewer">Reviewer</option>
+              <option value="Faculty">Faculty</option>
+            </select>
+          </div>
+          <button type="submit" class="login-submit">Login →</button>
+        </form>
+        <div class="login-note">Authorised academy staff only</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ APP SHELL ============================================================ -->
+<div id="view-app" class="view">
+  <div class="sidebar-scrim" id="scrim" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main id="content"></main>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Plain classic <script> tags (no type="module") so this runs directly from
+     file:// with no local server and no build step. Order matters: each file
+     depends on globals defined by the ones before it. -->
+<script src="js/01-data.js"></script>
+<script src="js/02-icons.js"></script>
+<script src="js/03-helpers.js"></script>
+<script src="js/04-auth.js"></script>
+<script src="js/05-shell.js"></script>
+<script src="js/06-router.js"></script>
+<script src="js/07-dashboard.js"></script>
+<script src="js/08-books.js"></script>
+<script src="js/09-collections.js"></script>
+<script src="js/10-courses.js"></script>
+<script src="js/11-category.js"></script>
+<script src="js/12-students.js"></script>
+<script src="js/13-staff.js"></script>
+<script src="js/14-reviewers.js"></script>
+<script src="js/15-cms.js"></script>
+<script src="js/17-schedule.js"></script>
+<script src="js/16-app.js"></script>
+</body>
+</html>
