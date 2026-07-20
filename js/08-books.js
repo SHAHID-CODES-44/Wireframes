@@ -1,20 +1,19 @@
 /* ============================================================ BOOKS ============================================================ */
+function bookRowHtml(b, srNo){
+  const cat = CATEGORIES.find(c=>c.id===b.catId);
+  return `<tr onclick="navigate('book-view', ${b.id})">
+    <td><div class="cell-thumb"><img class="thumb" src="${esc(b.cover)}" alt=""><div><div class="row-title">${esc(b.title)}</div><div class="row-sub">Ed. ${b.edition} · ${b.pages} pages</div></div></div></td>
+    <td><div class="row-title" style="font-weight:700;">${inr(b.price)}</div><div class="row-sub price-strike">${inr(b.mrp)}</div></td>
+    <td>${cat ? esc(cat.name) : "—"}</td>
+    <td>${statusBadge(b.status)}</td>
+    <td>${b.year}</td>
+    <td class="row-actions">
+      <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openBookModal(${b.id})">${ICONS.edit}</button>
+      <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteBook(${b.id})">${ICONS.trash}</button>
+    </td>
+  </tr>`;
+}
 function renderBooksList(){
-  const rows = BOOKS.map(b=>{
-    const cat = CATEGORIES.find(c=>c.id===b.catId);
-    return `<tr data-search="${esc((b.title+' '+b.editor).toLowerCase())}" data-status="${esc(b.status)}" onclick="navigate('book-view', ${b.id})">
-      <td><div class="cell-thumb"><img class="thumb" src="${esc(b.cover)}" alt=""><div><div class="row-title">${esc(b.title)}</div><div class="row-sub">Ed. ${b.edition} · ${b.pages} pages</div></div></div></td>
-      <td><div class="row-title" style="font-weight:700;">${inr(b.price)}</div><div class="row-sub price-strike">${inr(b.mrp)}</div></td>
-      <td>${cat ? esc(cat.name) : "—"}</td>
-      <td>${statusBadge(b.status)}</td>
-      <td>${b.year}</td>
-      <td class="row-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openBookModal(${b.id})">${ICONS.edit}</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteBook(${b.id})">${ICONS.trash}</button>
-      </td>
-    </tr>`;
-  }).join("");
-
   document.getElementById('content').innerHTML = `
     ${crumbs([{label:"Digital Library"},{label:"Books"}])}
     <div class="page-head">
@@ -22,22 +21,29 @@ function renderBooksList(){
       <button class="btn btn-primary" onclick="openBookModal()">${ICONS.plus} Add Book</button>
     </div>
     <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search books…"></div>
-      <button class="filter-chip active" data-status="All">All (${BOOKS.length})</button>
-      <button class="filter-chip" data-status="Published">Published</button>
-      <button class="filter-chip" data-status="Draft">Draft</button>
+      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search books…" oninput="LIST.books.setSearch(this.value)"></div>
+      <button class="filter-chip active" data-status="All" onclick="LIST.books.setStatus('All', this)">All (${BOOKS.length})</button>
+      <button class="filter-chip" data-status="Published" onclick="LIST.books.setStatus('Published', this)">Published</button>
+      <button class="filter-chip" data-status="Draft" onclick="LIST.books.setStatus('Draft', this)">Draft</button>
       <div class="spacer"></div>
       <button class="btn btn-ghost btn-sm" onclick="navigate('books')">${ICONS.refresh} Refresh</button>
     </div>
     <div class="table-wrap">
       <table class="data">
         <thead><tr><th>Name</th><th>Price</th><th>Category</th><th>Status</th><th>Publish Year</th><th></th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No books yet — click "Add Book" to create one.</td></tr>`}</tbody>
+        <tbody id="booksTbody"></tbody>
       </table>
     </div>
+    <div id="booksPagination"></div>
   `;
-  wireListToolbar({ searchInputId:"pageSearch", chipContainerSelector:".filter-chip", rowSelector:"table.data tbody tr[data-search]", tbodySelector:"table.data tbody",
-    emptyRowHtml:`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No books match your search.</td></tr>` });
+  createListController({
+    key:"books", perPage:10, getData:()=>BOOKS,
+    matchesSearch:(b,q)=>(b.title+' '+b.editor).toLowerCase().includes(q),
+    matchesStatus:(b,status)=>b.status===status,
+    renderRow: bookRowHtml,
+    tbodySelector:"#booksTbody", paginationSelector:"#booksPagination",
+    emptyHtml:`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No books match your search.</td></tr>`,
+  });
 }
 
 function renderBookView(id){

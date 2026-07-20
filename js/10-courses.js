@@ -1,21 +1,20 @@
 /* ============================================================ COURSES ============================================================ */
+const COURSE_TYPE_COLOR = { "Coaching":"badge-purple","Certificate":"badge-green","Diploma":"badge-amber" };
+function courseRowHtml(c, srNo){
+  return `<tr onclick="navigate('course-view', ${c.id})">
+    <td>${COURSE_TYPE_COLOR[c.type] ? `<span class="badge ${COURSE_TYPE_COLOR[c.type]}">${esc(c.type)}</span>` : esc(c.type)}</td>
+    <td><div class="row-title">${esc(c.title)}</div><div class="row-sub">Next intake: ${esc(c.nextIntake)}</div></td>
+    <td>${esc(c.durationLabel)}</td>
+    <td>${esc(c.mode)}</td>
+    <td>${esc(c.coordinator)}</td>
+    <td>${statusBadge(c.status)}</td>
+    <td class="row-actions">
+      <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openCourseModal(${c.id})">${ICONS.edit}</button>
+      <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteCourse(${c.id})">${ICONS.trash}</button>
+    </td>
+  </tr>`;
+}
 function renderCoursesList(){
-  const typeColor = { "Coaching":"badge-purple","Certificate":"badge-green","Diploma":"badge-amber" };
-  const rows = COURSES.map(c=>{
-    return `<tr data-search="${esc((c.title+' '+c.coordinator+' '+c.type).toLowerCase())}" data-status="${esc(c.status)}" onclick="navigate('course-view', ${c.id})">
-      <td>${typeColor[c.type] ? `<span class="badge ${typeColor[c.type]}">${esc(c.type)}</span>` : esc(c.type)}</td>
-      <td><div class="row-title">${esc(c.title)}</div><div class="row-sub">Next intake: ${esc(c.nextIntake)}</div></td>
-      <td>${esc(c.durationLabel)}</td>
-      <td>${esc(c.mode)}</td>
-      <td>${esc(c.coordinator)}</td>
-      <td>${statusBadge(c.status)}</td>
-      <td class="row-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openCourseModal(${c.id})">${ICONS.edit}</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteCourse(${c.id})">${ICONS.trash}</button>
-      </td>
-    </tr>`;
-  }).join("");
-
   document.getElementById('content').innerHTML = `
     ${crumbs([{label:"Courses"},{label:"Course List"}])}
     <div class="page-head">
@@ -23,20 +22,27 @@ function renderCoursesList(){
       <button class="btn btn-primary" onclick="openCourseModal()">${ICONS.plus} Add Course</button>
     </div>
     <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search courses…"></div>
-      <button class="filter-chip active" data-status="All">All (${COURSES.length})</button>
-      <button class="filter-chip" data-status="Active">Active</button>
-      <button class="filter-chip" data-status="Draft">Draft</button>
+      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search courses…" oninput="LIST.courses.setSearch(this.value)"></div>
+      <button class="filter-chip active" data-status="All" onclick="LIST.courses.setStatus('All', this)">All (${COURSES.length})</button>
+      <button class="filter-chip" data-status="Active" onclick="LIST.courses.setStatus('Active', this)">Active</button>
+      <button class="filter-chip" data-status="Draft" onclick="LIST.courses.setStatus('Draft', this)">Draft</button>
     </div>
     <div class="table-wrap">
       <table class="data">
         <thead><tr><th>Type</th><th>Title</th><th>Duration</th><th>Mode</th><th>Coordinator</th><th>Status</th><th></th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">No courses yet.</td></tr>`}</tbody>
+        <tbody id="coursesTbody"></tbody>
       </table>
     </div>
+    <div id="coursesPagination"></div>
   `;
-  wireListToolbar({ searchInputId:"pageSearch", chipContainerSelector:".filter-chip", rowSelector:"table.data tbody tr[data-search]", tbodySelector:"table.data tbody",
-    emptyRowHtml:`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">No courses match your search.</td></tr>` });
+  createListController({
+    key:"courses", perPage:10, getData:()=>COURSES,
+    matchesSearch:(c,q)=>(c.title+' '+c.coordinator+' '+c.type).toLowerCase().includes(q),
+    matchesStatus:(c,status)=>c.status===status,
+    renderRow: courseRowHtml,
+    tbodySelector:"#coursesTbody", paginationSelector:"#coursesPagination",
+    emptyHtml:`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">No courses match your search.</td></tr>`,
+  });
 }
 
 function openCourseModal(id){

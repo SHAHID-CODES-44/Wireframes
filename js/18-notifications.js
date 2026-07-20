@@ -129,7 +129,7 @@ function openComposeNotificationModal(){
         <div id="ntChips" class="notif-chips"></div>
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
           <span id="ntSelectedSummary" style="font-size:11.5px; color:var(--muted); font-weight:600;">No recipients selected yet</span>
-          <button type="button" class="notif-select-all" onclick="selectAllFilteredNotifRecipients()">Select All</button>
+          <button type="button" class="notif-select-all" onclick="selectAllFilteredNotifRecipients()">Select all shown</button>
         </div>
         <div class="checkbox-list" id="ntRecipientList">${buildRecipientListHtml("")}</div>
       </div>

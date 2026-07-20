@@ -1,17 +1,16 @@
 /* ============================================================ STAFF / USERS ============================================================ */
+function staffRowHtml(u, srNo){
+  return `<tr>
+    <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar-sm">${initials(u.name)}</div><div><div class="row-title">${esc(u.name)}</div><div class="row-sub">${esc(u.email)}</div></div></div></td>
+    <td><span class="badge badge-purple">${esc(u.role)}</span></td>
+    <td>${statusBadge(u.status)}</td>
+    <td class="row-actions">
+      <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openStaffModal(${u.id})">${ICONS.edit}</button>
+      <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteStaff(${u.id})">${ICONS.trash}</button>
+    </td>
+  </tr>`;
+}
 function renderStaffList(){
-  const rows = STAFF.map(u=>`
-    <tr data-search="${esc((u.name+' '+u.email+' '+u.role).toLowerCase())}" data-status="${esc(u.status)}">
-      <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar-sm">${initials(u.name)}</div><div><div class="row-title">${esc(u.name)}</div><div class="row-sub">${esc(u.email)}</div></div></div></td>
-      <td><span class="badge badge-purple">${esc(u.role)}</span></td>
-      <td>${statusBadge(u.status)}</td>
-      <td class="row-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openStaffModal(${u.id})">${ICONS.edit}</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteStaff(${u.id})">${ICONS.trash}</button>
-      </td>
-    </tr>
-  `).join("");
-
   document.getElementById('content').innerHTML = `
     ${crumbs([{label:"Users"},{label:"Staff Management"}])}
     <div class="page-head">
@@ -19,20 +18,27 @@ function renderStaffList(){
       <button class="btn btn-primary" onclick="openStaffModal()">${ICONS.plus} Add Staff</button>
     </div>
     <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search staff…"></div>
-      <button class="filter-chip active" data-status="All">All (${STAFF.length})</button>
-      <button class="filter-chip" data-status="Active">Active</button>
-      <button class="filter-chip" data-status="Inactive">Inactive</button>
+      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search staff…" oninput="LIST.staff.setSearch(this.value)"></div>
+      <button class="filter-chip active" data-status="All" onclick="LIST.staff.setStatus('All', this)">All (${STAFF.length})</button>
+      <button class="filter-chip" data-status="Active" onclick="LIST.staff.setStatus('Active', this)">Active</button>
+      <button class="filter-chip" data-status="Inactive" onclick="LIST.staff.setStatus('Inactive', this)">Inactive</button>
     </div>
     <div class="table-wrap">
       <table class="data">
         <thead><tr><th>Staff Member</th><th>Role</th><th>Status</th><th></th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:30px;">No staff yet.</td></tr>`}</tbody>
+        <tbody id="staffTbody"></tbody>
       </table>
     </div>
+    <div id="staffPagination"></div>
   `;
-  wireListToolbar({ searchInputId:"pageSearch", chipContainerSelector:".filter-chip", rowSelector:"table.data tbody tr[data-search]", tbodySelector:"table.data tbody",
-    emptyRowHtml:`<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:30px;">No staff match your search.</td></tr>` });
+  createListController({
+    key:"staff", perPage:10, getData:()=>STAFF,
+    matchesSearch:(u,q)=>(u.name+' '+u.email+' '+u.role).toLowerCase().includes(q),
+    matchesStatus:(u,status)=>u.status===status,
+    renderRow: staffRowHtml,
+    tbodySelector:"#staffTbody", paginationSelector:"#staffPagination",
+    emptyHtml:`<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:30px;">No staff match your search.</td></tr>`,
+  });
 }
 
 function openStaffModal(id){
@@ -44,6 +50,7 @@ function openStaffModal(id){
       <div class="field"><label>Email</label><input type="email" id="sfEmail" value="${u ? esc(u.email) : ""}"></div>
       <div class="field"><label>Role</label>
         <select id="sfRole">
+          <option ${u && u.role==="Super Admin" ? "selected":""}>Super Admin</option>
           <option ${u && u.role==="Management" ? "selected":""}>Management</option>
           <option ${u && u.role==="Reviewer" ? "selected":""}>Reviewer</option>
           <option ${u && u.role==="Faculty" ? "selected":""}>Faculty</option>

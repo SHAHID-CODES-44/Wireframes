@@ -1,21 +1,20 @@
 /* ============================================================ STUDENTS ============================================================ */
+function studentRowHtml(s, srNo){
+  const course = COURSES.find(c=>c.id===s.courseId);
+  const batch = BATCHES[s.batchId];
+  return `<tr onclick="openStudentViewModal(${s.id})">
+    <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar-sm">${initials(s.name)}</div><div><div class="row-title">${esc(s.name)}</div><div class="row-sub">${esc(s.email)}</div></div></div></td>
+    <td>${esc(s.phone)}</td>
+    <td>${course ? esc(course.title) : "—"}${batch ? `<div class="row-sub">${esc(batch.intake)}</div>` : ""}</td>
+    <td>${statusBadge(s.status)}</td>
+    <td>${esc(s.joined)}</td>
+    <td class="row-actions">
+      <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openStudentModal(${s.id})">${ICONS.edit}</button>
+      <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteStudent(${s.id})">${ICONS.trash}</button>
+    </td>
+  </tr>`;
+}
 function renderStudentsList(){
-  const rows = STUDENTS.map(s=>{
-    const course = COURSES.find(c=>c.id===s.courseId);
-    const batch = BATCHES[s.batchId];
-    return `<tr data-search="${esc((s.name+' '+s.email).toLowerCase())}" data-status="${esc(s.status)}" onclick="openStudentViewModal(${s.id})">
-      <td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar-sm">${initials(s.name)}</div><div><div class="row-title">${esc(s.name)}</div><div class="row-sub">${esc(s.email)}</div></div></div></td>
-      <td>${esc(s.phone)}</td>
-      <td>${course ? esc(course.title) : "—"}${batch ? `<div class="row-sub">${esc(batch.intake)}</div>` : ""}</td>
-      <td>${statusBadge(s.status)}</td>
-      <td>${esc(s.joined)}</td>
-      <td class="row-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openStudentModal(${s.id})">${ICONS.edit}</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteStudent(${s.id})">${ICONS.trash}</button>
-      </td>
-    </tr>`;
-  }).join("");
-
   document.getElementById('content').innerHTML = `
     ${crumbs([{label:"Students"},{label:"All Students"}])}
     <div class="page-head">
@@ -23,21 +22,28 @@ function renderStudentsList(){
       <button class="btn btn-primary" onclick="openStudentModal()">${ICONS.plus} Add Student</button>
     </div>
     <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search students…"></div>
-      <button class="filter-chip active" data-status="All">All (${STUDENTS.length})</button>
-      <button class="filter-chip" data-status="Active">Active</button>
-      <button class="filter-chip" data-status="Pending">Pending</button>
-      <button class="filter-chip" data-status="Graduated">Graduated</button>
+      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search students…" oninput="LIST.students.setSearch(this.value)"></div>
+      <button class="filter-chip active" data-status="All" onclick="LIST.students.setStatus('All', this)">All (${STUDENTS.length})</button>
+      <button class="filter-chip" data-status="Active" onclick="LIST.students.setStatus('Active', this)">Active</button>
+      <button class="filter-chip" data-status="Pending" onclick="LIST.students.setStatus('Pending', this)">Pending</button>
+      <button class="filter-chip" data-status="Graduated" onclick="LIST.students.setStatus('Graduated', this)">Graduated</button>
     </div>
     <div class="table-wrap">
       <table class="data">
         <thead><tr><th>Student</th><th>Phone</th><th>Course / Batch</th><th>Status</th><th>Joined</th><th></th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No students yet.</td></tr>`}</tbody>
+        <tbody id="studentsTbody"></tbody>
       </table>
     </div>
+    <div id="studentsPagination"></div>
   `;
-  wireListToolbar({ searchInputId:"pageSearch", chipContainerSelector:".filter-chip", rowSelector:"table.data tbody tr[data-search]", tbodySelector:"table.data tbody",
-    emptyRowHtml:`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No students match your search.</td></tr>` });
+  createListController({
+    key:"students", perPage:10, getData:()=>STUDENTS,
+    matchesSearch:(s,q)=>(s.name+' '+s.email).toLowerCase().includes(q),
+    matchesStatus:(s,status)=>s.status===status,
+    renderRow: studentRowHtml,
+    tbodySelector:"#studentsTbody", paginationSelector:"#studentsPagination",
+    emptyHtml:`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No students match your search.</td></tr>`,
+  });
 }
 
 /* Read-only full profile — opened by clicking a student row. */

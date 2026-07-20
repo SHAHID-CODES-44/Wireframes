@@ -58,43 +58,92 @@ function confirmAction(title, message, onConfirm){
   document.getElementById('confirmActionBtn').onclick = ()=>{ closeModal(); onConfirm(); };
 }
 
-/* Simple client-side text search + status filter wiring shared by every list toolbar.
-   Call after rendering a `.table-wrap table.data` with rows carrying data-search / data-status attrs. */
-function wireListToolbar({ searchInputId, chipContainerSelector, rowSelector, tbodySelector, emptyRowHtml }){
-  const input = document.getElementById(searchInputId);
-  const chips = chipContainerSelector ? Array.from(document.querySelectorAll(chipContainerSelector)) : [];
-  let activeStatus = "All";
+/* ============================================================ LIST CONTROLLER (search + status filter + real pagination) ============================================================
+   Used by every list/table page (Books, Collections, Courses, Category, Students,
+   Staff, Reviewers, Notifications). Unlike the old CSS-hide approach, this only ever
+   puts `perPage` rows in the DOM — important once a table has hundreds/thousands of
+   records, not just the handful in this demo dataset.
+
+   All active controllers are kept on `window.LIST` so inline onclick/oninput
+   handlers in the rendered HTML can reach them, e.g. LIST.books.setSearch(this.value).
+*/
+const LIST = {};
+
+function createListController(opts){
+  const perPage = opts.perPage || 10;
+  const state = { search:"", status:"All", page:1 };
+
+  function filteredData(){
+    const q = state.search.trim().toLowerCase();
+    return opts.getData().filter(item=>{
+      const matchesSearch = !q || opts.matchesSearch(item, q);
+      const matchesStatus = state.status === "All" || opts.matchesStatus(item, state.status);
+      return matchesSearch && matchesStatus;
+    });
+  }
 
   function apply(){
-    const q = (input ? input.value : "").trim().toLowerCase();
-    const rows = Array.from(document.querySelectorAll(rowSelector));
-    let visible = 0;
-    rows.forEach(r=>{
-      const text = (r.dataset.search || "").toLowerCase();
-      const status = r.dataset.status || "";
-      const matchesText = !q || text.includes(q);
-      const matchesStatus = activeStatus === "All" || status === activeStatus;
-      const show = matchesText && matchesStatus;
-      r.style.display = show ? "" : "none";
-      if(show) visible++;
-    });
-    const tbody = document.querySelector(tbodySelector);
-    let emptyRow = tbody ? tbody.querySelector('.js-empty-row') : null;
-    if(tbody && emptyRowHtml){
-      if(visible === 0 && !emptyRow){
-        tbody.insertAdjacentHTML('beforeend', emptyRowHtml.replace('class="', 'class="js-empty-row '));
-      } else if(visible > 0 && emptyRow){
-        emptyRow.remove();
-      }
+    const all = filteredData();
+    const totalPages = Math.max(1, Math.ceil(all.length / perPage));
+    if(state.page > totalPages) state.page = totalPages;
+    if(state.page < 1) state.page = 1;
+    const start = (state.page - 1) * perPage;
+    const pageItems = all.slice(start, start + perPage);
+
+    const tbody = document.querySelector(opts.tbodySelector);
+    if(tbody){
+      tbody.innerHTML = pageItems.length ? pageItems.map((item,i)=>opts.renderRow(item, start+i+1)).join("") : opts.emptyHtml;
     }
+    const paginationEl = document.querySelector(opts.paginationSelector);
+    if(paginationEl){
+      paginationEl.innerHTML = renderPaginationBar(opts.key, state.page, totalPages, all.length, perPage, start);
+    }
+    if(opts.afterRender) opts.afterRender();
   }
-  if(input) input.addEventListener('input', apply);
-  chips.forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      chips.forEach(c=>c.classList.remove('active'));
-      chip.classList.add('active');
-      activeStatus = chip.dataset.status || "All";
+
+  const controller = {
+    setSearch(q){ state.search = q; state.page = 1; apply(); },
+    setStatus(status, btnEl){
+      state.status = status; state.page = 1;
+      if(btnEl){
+        btnEl.parentElement.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+        btnEl.classList.add('active');
+      }
       apply();
-    });
-  });
+    },
+    goToPage(p){ state.page = p; apply(); },
+    refresh(){ apply(); },
+    getState(){ return state; },
+  };
+  LIST[opts.key] = controller;
+  apply();
+  return controller;
+}
+
+/* Windowed page numbers: 1 … 4 5 [6] 7 8 … 42 — instead of hundreds of buttons. */
+function buildPageNumbers(current, total){
+  const pages = [];
+  for(let p=1;p<=total;p++){
+    if(p===1 || p===total || (p>=current-1 && p<=current+1)) pages.push(p);
+    else if(pages[pages.length-1] !== "…") pages.push("…");
+  }
+  return pages;
+}
+function renderPaginationBar(key, current, total, totalItems, perPage, start){
+  if(totalItems === 0) return "";
+  const rangeStart = totalItems ? start+1 : 0;
+  const rangeEnd = Math.min(start+perPage, totalItems);
+  return `
+    <div class="pagination-bar">
+      <span class="pagination-count">${rangeStart}–${rangeEnd} of ${totalItems}</span>
+      <div class="pagination-buttons">
+        <button class="btn btn-ghost btn-sm" ${current<=1 ? "disabled":""} onclick="LIST.${key}.goToPage(${current-1})">${ICONS.back} Prev</button>
+        ${buildPageNumbers(current,total).map(p=> p==="…"
+          ? `<span class="pagination-ellipsis">…</span>`
+          : `<button class="pagination-page ${p===current ? 'active':''}" onclick="LIST.${key}.goToPage(${p})">${p}</button>`
+        ).join("")}
+        <button class="btn btn-ghost btn-sm" ${current>=total ? "disabled":""} onclick="LIST.${key}.goToPage(${current+1})">Next ${ICONS.arrow}</button>
+      </div>
+    </div>
+  `;
 }

@@ -1,20 +1,19 @@
 /* ============================================================ COLLECTIONS ============================================================ */
+function collectionRowHtml(c, srNo){
+  const cat = CATEGORIES.find(x=>x.id===c.catId);
+  return `<tr onclick="navigate('collection-view', ${c.id})">
+    <td><div class="cell-thumb"><img class="thumb-sq" src="${esc(c.cover)}" alt=""><div><div class="row-title">${esc(c.title)}</div><div class="row-sub">${c.moduleCount} modules · ${cat ? esc(cat.name) : "—"}</div></div></div></td>
+    <td><div class="row-title" style="font-weight:700;">${inr(c.price)}</div><div class="row-sub">$${c.priceUsd} USD</div></td>
+    <td>${c.bookIds.length} books</td>
+    <td>${statusBadge(c.availability)}</td>
+    <td>${esc(c.editor)}</td>
+    <td class="row-actions">
+      <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openCollectionModal(${c.id})">${ICONS.edit}</button>
+      <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteCollection(${c.id})">${ICONS.trash}</button>
+    </td>
+  </tr>`;
+}
 function renderCollectionsList(){
-  const rows = COLLECTIONS.map(c=>{
-    const cat = CATEGORIES.find(x=>x.id===c.catId);
-    return `<tr data-search="${esc((c.title+' '+c.editor).toLowerCase())}" data-status="${esc(c.availability)}" onclick="navigate('collection-view', ${c.id})">
-      <td><div class="cell-thumb"><img class="thumb-sq" src="${esc(c.cover)}" alt=""><div><div class="row-title">${esc(c.title)}</div><div class="row-sub">${c.moduleCount} modules · ${cat ? esc(cat.name) : "—"}</div></div></div></td>
-      <td><div class="row-title" style="font-weight:700;">${inr(c.price)}</div><div class="row-sub">$${c.priceUsd} USD</div></td>
-      <td>${c.bookIds.length} books</td>
-      <td>${statusBadge(c.availability)}</td>
-      <td>${esc(c.editor)}</td>
-      <td class="row-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openCollectionModal(${c.id})">${ICONS.edit}</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteCollection(${c.id})">${ICONS.trash}</button>
-      </td>
-    </tr>`;
-  }).join("");
-
   document.getElementById('content').innerHTML = `
     ${crumbs([{label:"Digital Library"},{label:"Collections"}])}
     <div class="page-head">
@@ -22,20 +21,27 @@ function renderCollectionsList(){
       <button class="btn btn-primary" onclick="openCollectionModal()">${ICONS.plus} Add Collection</button>
     </div>
     <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search collections…"></div>
-      <button class="filter-chip active" data-status="All">All (${COLLECTIONS.length})</button>
-      <button class="filter-chip" data-status="Available">Available</button>
-      <button class="filter-chip" data-status="Coming Soon">Coming Soon</button>
+      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search collections…" oninput="LIST.collections.setSearch(this.value)"></div>
+      <button class="filter-chip active" data-status="All" onclick="LIST.collections.setStatus('All', this)">All (${COLLECTIONS.length})</button>
+      <button class="filter-chip" data-status="Available" onclick="LIST.collections.setStatus('Available', this)">Available</button>
+      <button class="filter-chip" data-status="Coming Soon" onclick="LIST.collections.setStatus('Coming Soon', this)">Coming Soon</button>
     </div>
     <div class="table-wrap">
       <table class="data">
         <thead><tr><th>Name</th><th>Price</th><th>Books</th><th>Availability</th><th>Editor</th><th></th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No collections yet.</td></tr>`}</tbody>
+        <tbody id="collectionsTbody"></tbody>
       </table>
     </div>
+    <div id="collectionsPagination"></div>
   `;
-  wireListToolbar({ searchInputId:"pageSearch", chipContainerSelector:".filter-chip", rowSelector:"table.data tbody tr[data-search]", tbodySelector:"table.data tbody",
-    emptyRowHtml:`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No collections match your search.</td></tr>` });
+  createListController({
+    key:"collections", perPage:10, getData:()=>COLLECTIONS,
+    matchesSearch:(c,q)=>(c.title+' '+c.editor).toLowerCase().includes(q),
+    matchesStatus:(c,status)=>c.availability===status,
+    renderRow: collectionRowHtml,
+    tbodySelector:"#collectionsTbody", paginationSelector:"#collectionsPagination",
+    emptyHtml:`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No collections match your search.</td></tr>`,
+  });
 }
 
 function renderCollectionView(id){

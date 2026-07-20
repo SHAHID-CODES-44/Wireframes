@@ -15,12 +15,13 @@ function buildSidebar(){
       <div class="nav-label">Home</div>
       ${navItem('dashboard', ICONS.home, 'Dashboard')}
       ${navItem('cms', ICONS.cms, 'Homepage & Content')}
+      ${navItem('notifications', ICONS.bell, 'Notification Settings')}
     </div>
 
     <div class="nav-group">
       <div class="nav-label">Digital Library</div>
       ${navItem('books', ICONS.book, 'Books')}
-      ${navItem('collections', ICONS.layers, 'Collections (Temp)')}
+      ${navItem('collections', ICONS.layers, 'Collections')}
     </div>
 
     <div class="nav-group">

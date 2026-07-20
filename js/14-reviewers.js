@@ -1,22 +1,21 @@
 /* ============================================================ REVIEW QUEUE ============================================================ */
+function reviewRowHtml(r, srNo){
+  return `<tr>
+    <td><div class="row-title">${esc(r.student)}</div><div class="row-sub">${esc(r.context)}</div></td>
+    <td>${esc(r.docType)}</td>
+    <td>${esc(r.submitted)}</td>
+    <td>${statusBadge(r.status)}</td>
+    <td class="row-actions">
+      ${r.status === "Pending" ? `
+        <button class="btn btn-primary btn-sm" title="Approve" onclick="event.stopPropagation(); setReviewStatus(${r.id}, 'Approved')">${ICONS.checkCircle} Approve</button>
+        <button class="btn btn-danger btn-sm" title="Reject" onclick="event.stopPropagation(); setReviewStatus(${r.id}, 'Rejected')">${ICONS.xCircle} Reject</button>
+      ` : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); setReviewStatus(${r.id}, 'Pending')">Reopen</button>`}
+      <button class="btn btn-ghost btn-sm btn-icon" title="Remove" onclick="event.stopPropagation(); deleteReview(${r.id})">${ICONS.trash}</button>
+    </td>
+  </tr>`;
+}
 function renderReviewQueue(){
   const pending = REVIEWS.filter(r=>r.status==="Pending").length;
-  const rows = REVIEWS.map(r=>`
-    <tr data-search="${esc((r.student+' '+r.docType).toLowerCase())}" data-status="${esc(r.status)}">
-      <td><div class="row-title">${esc(r.student)}</div><div class="row-sub">${esc(r.context)}</div></td>
-      <td>${esc(r.docType)}</td>
-      <td>${esc(r.submitted)}</td>
-      <td>${statusBadge(r.status)}</td>
-      <td class="row-actions">
-        ${r.status === "Pending" ? `
-          <button class="btn btn-primary btn-sm" title="Approve" onclick="event.stopPropagation(); setReviewStatus(${r.id}, 'Approved')">${ICONS.checkCircle} Approve</button>
-          <button class="btn btn-danger btn-sm" title="Reject" onclick="event.stopPropagation(); setReviewStatus(${r.id}, 'Rejected')">${ICONS.xCircle} Reject</button>
-        ` : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); setReviewStatus(${r.id}, 'Pending')">Reopen</button>`}
-        <button class="btn btn-ghost btn-sm btn-icon" title="Remove" onclick="event.stopPropagation(); deleteReview(${r.id})">${ICONS.trash}</button>
-      </td>
-    </tr>
-  `).join("");
-
   document.getElementById('content').innerHTML = `
     ${crumbs([{label:"Reviewers"},{label:"Review Queue"}])}
     <div class="page-head">
@@ -24,21 +23,28 @@ function renderReviewQueue(){
       <button class="btn btn-primary" onclick="openReviewModal()">${ICONS.plus} Add Item</button>
     </div>
     <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search review queue…"></div>
-      <button class="filter-chip active" data-status="All">All (${REVIEWS.length})</button>
-      <button class="filter-chip" data-status="Pending">Pending (${pending})</button>
-      <button class="filter-chip" data-status="Approved">Approved</button>
-      <button class="filter-chip" data-status="Rejected">Rejected</button>
+      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search review queue…" oninput="LIST.reviewers.setSearch(this.value)"></div>
+      <button class="filter-chip active" data-status="All" onclick="LIST.reviewers.setStatus('All', this)">All (${REVIEWS.length})</button>
+      <button class="filter-chip" data-status="Pending" onclick="LIST.reviewers.setStatus('Pending', this)">Pending (${pending})</button>
+      <button class="filter-chip" data-status="Approved" onclick="LIST.reviewers.setStatus('Approved', this)">Approved</button>
+      <button class="filter-chip" data-status="Rejected" onclick="LIST.reviewers.setStatus('Rejected', this)">Rejected</button>
     </div>
     <div class="table-wrap">
       <table class="data">
         <thead><tr><th>Student</th><th>Document / Item</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">Nothing in the queue.</td></tr>`}</tbody>
+        <tbody id="reviewersTbody"></tbody>
       </table>
     </div>
+    <div id="reviewersPagination"></div>
   `;
-  wireListToolbar({ searchInputId:"pageSearch", chipContainerSelector:".filter-chip", rowSelector:"table.data tbody tr[data-search]", tbodySelector:"table.data tbody",
-    emptyRowHtml:`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">Nothing matches your search.</td></tr>` });
+  createListController({
+    key:"reviewers", perPage:10, getData:()=>REVIEWS,
+    matchesSearch:(r,q)=>(r.student+' '+r.docType).toLowerCase().includes(q),
+    matchesStatus:(r,status)=>r.status===status,
+    renderRow: reviewRowHtml,
+    tbodySelector:"#reviewersTbody", paginationSelector:"#reviewersPagination",
+    emptyHtml:`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">Nothing matches your search.</td></tr>`,
+  });
 }
 
 function setReviewStatus(id, status){

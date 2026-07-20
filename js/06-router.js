@@ -22,6 +22,7 @@ function navigate(view, param){
     students: renderStudentsList,
     reviewers: renderReviewQueue,
     cms: renderCmsEditor,
+    notifications: renderNotificationsList,
   };
   (renderers[view] || renderDashboard)();
 }

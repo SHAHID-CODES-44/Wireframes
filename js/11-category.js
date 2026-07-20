@@ -1,18 +1,17 @@
 /* ============================================================ MASTERS: CATEGORY ============================================================ */
+function categoryRowHtml(cat, srNo){
+  return `<tr>
+    <td class="row-title">${esc(cat.name)}</td>
+    <td>${cat.books} books</td>
+    <td>${statusBadge(cat.status)}</td>
+    <td>${cat.rank}</td>
+    <td class="row-actions">
+      <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openCategoryModal(${cat.id})">${ICONS.edit}</button>
+      <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteCategory(${cat.id})">${ICONS.trash}</button>
+    </td>
+  </tr>`;
+}
 function renderCategoryList(){
-  const rows = CATEGORIES.map(cat=>`
-    <tr data-search="${esc(cat.name.toLowerCase())}" data-status="${esc(cat.status)}">
-      <td class="row-title">${esc(cat.name)}</td>
-      <td>${cat.books} books</td>
-      <td>${statusBadge(cat.status)}</td>
-      <td>${cat.rank}</td>
-      <td class="row-actions">
-        <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="event.stopPropagation(); openCategoryModal(${cat.id})">${ICONS.edit}</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="event.stopPropagation(); deleteCategory(${cat.id})">${ICONS.trash}</button>
-      </td>
-    </tr>
-  `).join("");
-
   document.getElementById('content').innerHTML = `
     ${crumbs([{label:"Masters"},{label:"Category"}])}
     <div class="page-head">
@@ -20,20 +19,27 @@ function renderCategoryList(){
       <button class="btn btn-primary" onclick="openCategoryModal()">${ICONS.plus} Add Category</button>
     </div>
     <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search categories…"></div>
-      <button class="filter-chip active" data-status="All">All (${CATEGORIES.length})</button>
-      <button class="filter-chip" data-status="Active">Active</button>
-      <button class="filter-chip" data-status="Draft">Draft</button>
+      <div class="search-box">${ICONS.search}<input type="text" id="pageSearch" placeholder="Search categories…" oninput="LIST.category.setSearch(this.value)"></div>
+      <button class="filter-chip active" data-status="All" onclick="LIST.category.setStatus('All', this)">All (${CATEGORIES.length})</button>
+      <button class="filter-chip" data-status="Active" onclick="LIST.category.setStatus('Active', this)">Active</button>
+      <button class="filter-chip" data-status="Draft" onclick="LIST.category.setStatus('Draft', this)">Draft</button>
     </div>
     <div class="table-wrap">
       <table class="data">
         <thead><tr><th>Name</th><th>Books Assigned</th><th>Status</th><th>Rank</th><th></th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">No categories yet.</td></tr>`}</tbody>
+        <tbody id="categoryTbody"></tbody>
       </table>
     </div>
+    <div id="categoryPagination"></div>
   `;
-  wireListToolbar({ searchInputId:"pageSearch", chipContainerSelector:".filter-chip", rowSelector:"table.data tbody tr[data-search]", tbodySelector:"table.data tbody",
-    emptyRowHtml:`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">No categories match your search.</td></tr>` });
+  createListController({
+    key:"category", perPage:10, getData:()=>CATEGORIES,
+    matchesSearch:(cat,q)=>cat.name.toLowerCase().includes(q),
+    matchesStatus:(cat,status)=>cat.status===status,
+    renderRow: categoryRowHtml,
+    tbodySelector:"#categoryTbody", paginationSelector:"#categoryPagination",
+    emptyHtml:`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">No categories match your search.</td></tr>`,
+  });
 }
 
 function openCategoryModal(id){
