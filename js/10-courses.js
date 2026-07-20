@@ -161,7 +161,7 @@ function renderCourseView(id){
       <button class="tab" data-tab="curriculum" onclick="switchTab(this,'curriculum')">Curriculum</button>
       <button class="tab" data-tab="faculty" onclick="switchTab(this,'faculty')">Faculty</button>
       <button class="tab" data-tab="payplans" onclick="switchTab(this,'payplans')">Pay Plans</button>
-      <button class="tab" data-tab="schedule" onclick="switchTab(this,'schedule')">Schedule</button>
+      <button class="tab" data-tab="schedule" onclick="switchTab(this,'schedule')">Schedule a Lecture</button>
       <button class="tab" data-tab="batches" onclick="switchTab(this,'batches')">Batches (${batches.length})</button>
     </div>
 
