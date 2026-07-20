@@ -1,0 +1,27 @@
+/* ============================================================ RESPONSIVE — LARGE SCREEN FIXES ============================================================ */
+/* #content had a max-width but no auto margins, so on wide monitors it hugged the
+   left edge instead of centering — leaving a big dead gap on the right (the bug
+   in the screenshot). This centers it and scales the width sensibly on very
+   large displays instead of leaving it fixed at 1360px forever. */
+#content{
+  max-width:1360px;
+  margin-left:auto;
+  margin-right:auto;
+  width:100%;
+}
+
+@media (min-width:1600px){
+  #content{ max-width:1480px; }
+}
+@media (min-width:1920px){
+  #content{ max-width:1600px; padding-left:40px; padding-right:40px; }
+}
+@media (min-width:2400px){
+  #content{ max-width:1800px; }
+}
+
+/* Login screen: let the card breathe a bit more on ultra-wide monitors instead
+   of looking like a small island in a sea of gradient. */
+@media (min-width:1920px){
+  .login-card{ max-width:1080px; }
+}

@@ -27,6 +27,17 @@
 .notif-empty svg{opacity:0.5;}
 .notif-empty p{margin:0;font-size:12.5px;}
 
+.notif-chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px;}
+.notif-chips:empty{margin:0;}
+.notif-select-all
+{background:none;
+  border:none;padding:0;font-size:11.5px;font-weight:700;color:var(--purple-800);cursor:pointer;}
+.notif-select-all:hover{text-decoration:underline;}
+.notif-broadcast-note{
+  background:var(--purple-tint);color:var(--purple-800);font-size:13px;font-weight:600;
+  padding:12px 14px;border-radius:10px;margin-bottom:4px;
+}
+
 @media (max-width:520px){
   .notif-panel{position:fixed;top:60px;right:10px;left:10px;width:auto;max-width:none;}
 }

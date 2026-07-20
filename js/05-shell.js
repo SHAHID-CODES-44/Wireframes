@@ -20,7 +20,7 @@ function buildSidebar(){
     <div class="nav-group">
       <div class="nav-label">Digital Library</div>
       ${navItem('books', ICONS.book, 'Books')}
-      ${navItem('collections', ICONS.layers, 'Collections')}
+      ${navItem('collections', ICONS.layers, 'Collections (Temp)')}
     </div>
 
     <div class="nav-group">
