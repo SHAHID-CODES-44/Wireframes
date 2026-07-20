@@ -44,7 +44,6 @@ function openStaffModal(id){
       <div class="field"><label>Email</label><input type="email" id="sfEmail" value="${u ? esc(u.email) : ""}"></div>
       <div class="field"><label>Role</label>
         <select id="sfRole">
-          <option ${u && u.role==="Super Admin" ? "selected":""}>Super Admin</option>
           <option ${u && u.role==="Management" ? "selected":""}>Management</option>
           <option ${u && u.role==="Reviewer" ? "selected":""}>Reviewer</option>
           <option ${u && u.role==="Faculty" ? "selected":""}>Faculty</option>
